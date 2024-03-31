@@ -32,6 +32,8 @@ class User(BaseModel, Base):
         initialize User Model, inherits from BaseModel
         """
         super().__init__(*args, **kwargs)
+        if 'password' in kwargs:
+            self.password = kwargs['password']
 
     @property
     def password(self):
@@ -44,8 +46,16 @@ class User(BaseModel, Base):
     @password.setter
     def password(self, password):
         """
-        Password setter, with md5 hasing
+        Password setter, with md5 hashing
         :param password: password
         :return: nothing
         """
         self.__dict__["password"] = md5(password.encode('utf-8')).hexdigest()
+
+    def to_dict(self, save_to_file=False):
+        """Return dictionary representation of User"""
+        data = super().to_dict(save_to_file)
+        if not save_to_file and 'password' in data:
+            del data['password']
+        return data
+
