@@ -1,76 +1,75 @@
 #!/usr/bin/python3
 """
-User Class of Models Module
+Contains class BaseModel
 """
 
-import os
-import json
-import models
-from uuid import uuid4, UUID
 from datetime import datetime
-from hashlib import md5
+import models
+from os import getenv
+import sqlalchemy
+from sqlalchemy import Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, DateTime
+import uuid
 
-storage_type = os.environ.get('HBNB_TYPE_STORAGE')
+time = "%Y-%m-%dT%H:%M:%S.%f"
 
-if storage_type == 'db':
+if models.storage_t == "db":
     Base = declarative_base()
 else:
-    class Base:
-        pass
+    Base = object
+
 
 class BaseModel:
-    """
-    attributes and functions for BaseModel class
-    """
-
-    if storage_type == 'db':
-        id = Column(String(60), nullable=False, primary_key=True)
-        created_at = Column(DateTime, nullable=False,
-                            default=datetime.utcnow())
-        updated_at = Column(DateTime, nullable=False,
-                            default=datetime.utcnow())
+    """The BaseModel class from which future classes will be derived"""
+    if models.storage_t == "db":
+        id = Column(String(60), primary_key=True)
+        created_at = Column(DateTime, default=datetime.utcnow)
+        updated_at = Column(DateTime, default=datetime.utcnow)
 
     def __init__(self, *args, **kwargs):
-        """instantiation of new BaseModel Class"""
-        self.id = str(uuid4())
-        self.created_at = datetime.now()
+        """Initialization of the base model"""
         if kwargs:
             for key, value in kwargs.items():
-                setattr(self, key, value)
-        if 'password' in kwargs:
-            self.password = kwargs['password']
-
-    @property
-    def password(self):
-        """Getter method for password"""
-        return self.__password
-
-    @password.setter
-    def password(self, value):
-        """Setter method for password"""
-        self.__password = md5(value.encode()).hexdigest()
-
-    def to_dict(self, save_to_file=False):
-        """returns json representation of self"""
-        data = self.__dict__.copy()
-        if not save_to_file and 'password' in data:
-            del data['password']
-        data['__class__'] = type(self).__name__
-        if '_sa_instance_state' in data:
-            data.pop('_sa_instance_state')
-        return data
+                if key != "__class__":
+                    setattr(self, key, value)
+            if kwargs.get("created_at", None) and type(self.created_at) is str:
+                self.created_at = datetime.strptime(kwargs["created_at"], time)
+            else:
+                self.created_at = datetime.utcnow()
+            if kwargs.get("updated_at", None) and type(self.updated_at) is str:
+                self.updated_at = datetime.strptime(kwargs["updated_at"], time)
+            else:
+                self.updated_at = datetime.utcnow()
+            if kwargs.get("id", None) is None:
+                self.id = str(uuid.uuid4())
+        else:
+            self.id = str(uuid.uuid4())
+            self.created_at = datetime.utcnow()
+            self.updated_at = self.created_at
 
     def __str__(self):
-        """returns string type representation of object instance"""
-        class_name = type(self).__name__
-        return '[{}] ({}) {}'.format(class_name, self.id, self.__dict__)
+        """String representation of the BaseModel class"""
+        return "[{:s}] ({:s}) {}".format(self.__class__.__name__, self.id,
+                                         self.__dict__)
+
+    def save(self):
+        """updates the attribute 'updated_at' with the current datetime"""
+        self.updated_at = datetime.utcnow()
+        models.storage.new(self)
+        models.storage.save()
+
+    def to_dict(self):
+        """returns a dictionary containing all keys/values of the instance"""
+        new_dict = self.__dict__.copy()
+        if "created_at" in new_dict:
+            new_dict["created_at"] = new_dict["created_at"].strftime(time)
+        if "updated_at" in new_dict:
+            new_dict["updated_at"] = new_dict["updated_at"].strftime(time)
+        new_dict["__class__"] = self.__class__.__name__
+        if "_sa_instance_state" in new_dict:
+            del new_dict["_sa_instance_state"]
+        return new_dict
 
     def delete(self):
-        """
-        deletes current instance from storage
-        """
+        """delete the current instance from the storage"""
         models.storage.delete(self)
-
-
