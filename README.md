@@ -1,1 +1,1 @@
-#Forked AirBnB clone - MySQL Project
+#AirBnB clone - RESTful API
