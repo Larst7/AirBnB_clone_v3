@@ -14,7 +14,7 @@ def search_places():
     """
     try:
         search_data = request.get_json()
-    except Exception as e:
+    except ValueError:
         abort(400, "Not a JSON")
 
     if not search_data:
@@ -50,7 +50,7 @@ def search_places():
 
     # If amenities list is not empty, filter places based on amenities
     if amenities_ids:
-        amenities = [storage.get(Amenity, amenity_id) for amenity_id in amenities_ids]
+        amenities = storage.get(Amenity, amenities_ids)
         place_ids = filter_places_by_amenities(place_ids, amenities)
 
     # Retrieve places using the filtered place_ids
@@ -69,8 +69,7 @@ def filter_places_by_amenities(place_ids, amenities):
         place = storage.get(Place, place_id)
         if place:
             place_amenities = {amenity.id for amenity in place.amenities}
-            if not all(amenity.id in place_amenities for amenity in amenities):
+            if not amenities.issubset(place_amenities):
                 filtered_place_ids.remove(place_id)
 
     return filtered_place_ids
-
