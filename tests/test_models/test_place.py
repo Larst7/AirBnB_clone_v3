@@ -14,7 +14,7 @@ storage_type = os.environ.get('HBNB_TYPE_STORAGE')
 
 
 class TestPlaceDocs(unittest.TestCase):
-    """Class for testing Place docs"""
+    """Class for testing BaseModel docs"""
 
     @classmethod
     def setUpClass(cls):
@@ -89,9 +89,8 @@ class TestPlaceInstances(unittest.TestCase):
         actual = 1
         try:
             serialized = json.dumps(self.place_json)
-        except Exception as e:
+        except:
             actual = 0
-            print("Exception occurred:", e)
         self.assertTrue(1 == actual)
 
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
@@ -114,6 +113,5 @@ class TestPlaceInstances(unittest.TestCase):
         expected = 3
         self.assertEqual(expected, actual)
 
-
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main

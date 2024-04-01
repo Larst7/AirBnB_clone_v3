@@ -90,7 +90,7 @@ class TestUserInstances(unittest.TestCase):
         actual = 1
         try:
             serialized = json.dumps(self.user_json)
-        except Exception as e:
+        except:
             actual = 0
         self.assertTrue(1 == actual)
 
@@ -113,7 +113,6 @@ class TestUserInstances(unittest.TestCase):
             actual = ''
         expected = "bettyholbertn@gmail.com"
         self.assertEqual(expected, actual)
-
 
 if __name__ == '__main__':
     unittest.main

@@ -13,17 +13,23 @@ from sqlalchemy import Column, Integer, String, Float, DateTime
 
 storage_type = os.environ.get('HBNB_TYPE_STORAGE')
 
-Base = declarative_base() if storage_type == 'db' else object
+"""
+    Creates instance of Base if storage type is a database
+    If not database storage, uses class Base
+"""
+if storage_type == 'db':
+    Base = declarative_base()
+else:
+    class Base:
+        pass
 
 
-class BaseModel(Base):
+class BaseModel:
     """
         attributes and functions for BaseModel class
     """
 
     if storage_type == 'db':
-        __tablename__ = 'base_model'
-
         id = Column(String(60), nullable=False, primary_key=True)
         created_at = Column(DateTime, nullable=False,
                             default=datetime.utcnow())
@@ -45,7 +51,7 @@ class BaseModel(Base):
         try:
             obj_to_str = json.dumps(obj_v)
             return obj_to_str is not None and isinstance(obj_to_str, str)
-        except Exception as e:
+        except:
             return False
 
     def bm_update(self, name, value):
@@ -58,19 +64,19 @@ class BaseModel(Base):
 
     def save(self):
         """updates attribute updated_at to current time"""
-        self.updated_at = datetime.now()
+        if storage_type != 'db':
+            self.updated_at = datetime.now()
         models.storage.new(self)
         models.storage.save()
 
     def to_json(self):
         """returns json representation of self"""
         bm_dict = {}
-        for key, value in self.__dict__.items():
-            if key != '_sa_instance_state':
-                if self.__is_serializable(value):
-                    bm_dict[key] = value
-                else:
-                    bm_dict[key] = str(value)
+        for key, value in (self.__dict__).items():
+            if (self.__is_serializable(value)):
+                bm_dict[key] = value
+            else:
+                bm_dict[key] = str(value)
         bm_dict['__class__'] = type(self).__name__
         if '_sa_instance_state' in bm_dict:
             bm_dict.pop('_sa_instance_state')
@@ -87,4 +93,4 @@ class BaseModel(Base):
         """
             deletes current instance from storage
         """
-        models.storage.delete(self)
+        self.delete()

@@ -114,7 +114,7 @@ class TestBmFsInstances(unittest.TestCase):
         actual = 1
         try:
             serialized = json.dumps(my_model_json)
-        except Exception as e:
+        except:
             actual = 0
         self.assertTrue(1 == actual)
 

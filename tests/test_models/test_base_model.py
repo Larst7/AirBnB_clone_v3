@@ -83,6 +83,17 @@ class TestBaseModelInstances(unittest.TestCase):
         self.assertTrue(3 == actual)
 
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
+    def test_to_string(self):
+        """... checks if BaseModel is properly casted to string"""
+        my_str = str(self.model)
+        my_list = ['BaseModel', 'id', 'created_at']
+        actual = 0
+        for sub_str in my_list:
+            if sub_str in my_str:
+                actual += 1
+        self.assertTrue(3 == actual)
+
+    @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
     def test_instantiation_no_updated(self):
         """... should not have updated attribute"""
         my_str = str(self.model)
@@ -106,7 +117,7 @@ class TestBaseModelInstances(unittest.TestCase):
         actual = 1
         try:
             serialized = json.dumps(my_model_json)
-        except Exception:
+        except:
             actual = 0
         self.assertTrue(1 == actual)
 
@@ -133,6 +144,5 @@ class TestBaseModelInstances(unittest.TestCase):
         actual = self.model.number
         self.assertTrue(98 == actual)
 
-
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main
