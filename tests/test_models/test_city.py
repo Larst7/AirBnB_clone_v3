@@ -14,7 +14,7 @@ storage_type = os.environ.get('HBNB_TYPE_STORAGE')
 
 
 class TestCityDocs(unittest.TestCase):
-    """Class for testing BaseModel docs"""
+    """Class for testing City docs"""
 
     @classmethod
     def setUpClass(cls):
@@ -37,7 +37,7 @@ class TestCityDocs(unittest.TestCase):
 
 
 class TestCityInstances(unittest.TestCase):
-    """testing for class instances"""
+    """Testing City class instances"""
 
     @classmethod
     def setUpClass(cls):
@@ -47,72 +47,55 @@ class TestCityInstances(unittest.TestCase):
         print('.................................\n\n')
 
     def setUp(self):
-        """initializes new city for testing"""
+        """Initialize a new city for testing"""
         self.city = City()
 
     def test_instantiation(self):
-        """... checks if City is properly instantiated"""
+        """Check if City is properly instantiated"""
         self.assertIsInstance(self.city, City)
 
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
     def test_to_string(self):
-        """... checks if BaseModel is properly casted to string"""
+        """Check if BaseModel is properly casted to string"""
         my_str = str(self.city)
         my_list = ['City', 'id', 'created_at']
-        actual = 0
-        for sub_str in my_list:
-            if sub_str in my_str:
-                actual += 1
-        self.assertTrue(3 == actual)
+        actual = sum(sub_str in my_str for sub_str in my_list)
+        self.assertEqual(3, actual)
 
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
     def test_instantiation_no_updated(self):
-        """... should not have updated attribute"""
-        self.city = City()
+        """Check that it should not have updated attribute"""
         my_str = str(self.city)
-        actual = 0
-        if 'updated_at' in my_str:
-            actual += 1
-        self.assertTrue(0 == actual)
+        actual = 'updated_at' not in my_str
+        self.assertTrue(actual)
 
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
     def test_updated_at(self):
-        """... save function should add updated_at attribute"""
+        """Check if save function adds updated_at attribute"""
         self.city.save()
-        actual = type(self.city.updated_at)
-        expected = type(datetime.now())
-        self.assertEqual(expected, actual)
+        actual = isinstance(self.city.updated_at, datetime)
+        self.assertTrue(actual)
 
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
     def test_to_json(self):
-        """... to_json should return serializable dict object"""
+        """Check if to_json returns serializable dict object"""
         self.city_json = self.city.to_json()
-        actual = 1
-        try:
-            serialized = json.dumps(self.city_json)
-        except:
-            actual = 0
-        self.assertTrue(1 == actual)
+        actual = isinstance(self.city_json, dict)
+        self.assertTrue(actual)
 
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
     def test_json_class(self):
-        """... to_json should include class key with value City"""
+        """Check if to_json includes class key with value City"""
         self.city_json = self.city.to_json()
-        actual = None
-        if self.city_json['__class__']:
-            actual = self.city_json['__class__']
-        expected = 'City'
-        self.assertEqual(expected, actual)
+        actual = self.city_json.get('__class__')
+        self.assertEqual('City', actual)
 
     def test_state_attribute(self):
-        """... add state attribute"""
+        """Check addition of state attribute"""
         self.city.state_id = 'IL'
-        if hasattr(self.city, 'state_id'):
-            actual = self.city.state_id
-        else:
-            actual = ''
-        expected = 'IL'
-        self.assertEqual(expected, actual)
+        actual = self.city.state_id
+        self.assertEqual('IL', actual)
+
 
 if __name__ == '__main__':
-    unittest.main
+    unittest.main()
